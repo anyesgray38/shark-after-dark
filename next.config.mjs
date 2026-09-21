@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: "export",
+  basePath: "/shark-after-dark",
+  assetPrefix: "/shark-after-dark/",
   images: {
     unoptimized: true
   },
