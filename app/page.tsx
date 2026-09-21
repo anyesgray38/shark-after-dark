@@ -1,79 +1,9 @@
-const services = [
-  ["Signature Cut", "$40", "Precision cut, line-up and finish."],
-  ["Cut + Beard", "$55", "Full cut, beard sculpt and hot finish."],
-  ["After-Hours", "$75", "Private late-night appointment."],
-];
-
-export default function Home() {
-  return (
-    <main>
-      <nav className="nav">
-        <div className="logo">SHARK<span>AFTER DARK</span></div>
-        <a className="nav-link" href="#book">Book now</a>
-      </nav>
-
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">MOBILE BARBERING • AFTER HOURS</p>
-          <h1>Sharp cuts.<br /><em>No daylight required.</em></h1>
-          <p className="lede">
-            Premium mobile barbering built for people who move on their own schedule.
-            I come to you. You leave camera-ready.
-          </p>
-          <div className="actions">
-            <a className="button primary" href="#book">Book an appointment</a>
-            <a className="button ghost" href="#services">View services</a>
-          </div>
-          <div className="proof">
-            <span>01</span><p>Private mobile service</p>
-            <span>02</span><p>Flexible evening availability</p>
-            <span>03</span><p>Clean, precise finishes</p>
-          </div>
-        </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="orb"></div>
-          <div className="ring ring-one"></div>
-          <div className="ring ring-two"></div>
-          <div className="shark-mark">S</div>
-          <div className="art-label">AFTER<br />DARK</div>
-        </div>
-      </section>
-
-      <section id="services" className="services">
-        <div className="section-head">
-          <p className="eyebrow">THE MENU</p>
-          <h2>Built around the appointment.</h2>
-        </div>
-        <div className="cards">
-          {services.map(([name, price, detail]) => (
-            <article className="card" key={name}>
-              <p className="card-index">0{services.findIndex((s) => s[0] === name) + 1}</p>
-              <h3>{name}</h3>
-              <p>{detail}</p>
-              <strong>{price}</strong>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="book" className="booking">
-        <div>
-          <p className="eyebrow">READY WHEN YOU ARE</p>
-          <h2>Your chair.<br />Your location.<br /><em>Your time.</em></h2>
-        </div>
-        <div className="booking-panel">
-          <p>Book through the live appointment system.</p>
-          <a className="button primary full" href="https://cutzbyshark.square.site/" target="_blank" rel="noreferrer">
-            Open booking
-          </a>
-          <small>Mobile appointments • Thomaston & surrounding area</small>
-        </div>
-      </section>
-
-      <footer>
-        <div className="logo">SHARK<span>AFTER DARK</span></div>
-        <p>© {new Date().getFullYear()} Shark After Dark</p>
-      </footer>
-    </main>
-  );
-}
+const services=[["The Apex Fade","$45","Precision skin fade with a custom lineup. The gold standard."],["Deep Sea Shave","$35","Hot towel treatment, straight razor shave, and soothing oil."],["The Night Owl","$70","Full service: fade, beard trim, and scalp massage."]];
+export default function Home(){return <main>
+<nav className="nav"><div className="brand">SHARK<span>AFTERDARK</span></div><div className="nav-links"><a href="#services">Services</a><a href="#about">About</a><a href="#gallery">Gallery</a></div><a className="book-pill" href="https://cutzbyshark.square.site/" target="_blank" rel="noreferrer">Book Now</a></nav>
+<header className="hero"><div className="hero-inner"><p className="eyebrow">ELITE GROOMING • AFTER DARK</p><h1>Sharp Cuts.<br/><span>Dark Vibes.</span></h1><p className="hero-copy">Premium grooming for those who own the night. Precision, style, and an atmosphere unlike any other.</p><div className="hero-actions"><a className="cta neon" href="https://cutzbyshark.square.site/" target="_blank" rel="noreferrer">Reserve Your Chair</a><a className="cta outline" href="#services">View Menu</a></div></div><div className="hero-glow"/><div className="hero-grid"/></header>
+<section id="services" className="services"><h2>The <span>Menu</span></h2><div className="cards">{services.map(([name,price,detail],i)=><article className="card" key={name}><span className="number">0{i+1}</span><h3>{name}</h3><p>{detail}</p><strong>{price}</strong></article>)}</div></section>
+<section id="about" className="about"><div className="about-inner"><p className="eyebrow">THE SHARK STANDARD</p><h2>The Hunt for <span>Perfection.</span></h2><p>Shark After Dark isn't just a barbershop; it's a sanctuary for the modern man. We believe in the art of the cut and the power of a sharp image. Step out of the light and into the chair.</p></div></section>
+<section id="gallery" className="gallery"><p className="eyebrow">THE EXPERIENCE</p><h2>Own the <span>night.</span></h2><div className="gallery-grid"><div>SHARP</div><div>PRECISE</div><div>AFTER DARK</div></div></section>
+<footer><div className="brand">SHARK<span>AFTERDARK</span></div><p>© {new Date().getFullYear()} Shark After Dark Grooming. All Rights Reserved.</p><div className="social"><a href="#">Instagram</a><a href="#">TikTok</a><a href="#">Facebook</a></div></footer>
+</main>
