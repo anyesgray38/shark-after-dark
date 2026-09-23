@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://shark-after-dark-api.onrender.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://shark-after-dark.onrender.com";
 
 const services = [
   { id: 1, name: "The Apex Fade", price: "$45", durationMinutes: 60, description: "Precision skin fade with a custom lineup. The gold standard." },

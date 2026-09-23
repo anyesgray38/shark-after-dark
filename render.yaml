@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: shark-after-dark
+    runtime: node
+    plan: free
+    region: ohio
+    branch: main
+    autoDeploy: true
+    buildCommand: npm ci --include=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shark-after-dark-db
+          property: connectionString
+      - key: ADMIN_KEY
+        sync: false
+      - key: FRONTEND_ORIGIN
+        value: https://anyesgray38.github.io
+
+databases:
+  - name: shark-after-dark-db
+    databaseName: shark_after_dark_db
+    plan: free
+    region: ohio

@@ -5,9 +5,10 @@ import pg from "pg";
 const { Pool } = pg;
 const PORT = Number(process.env.PORT || 10000);
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false });
+const APPOINTMENT_STATUSES = new Set(["pending", "confirmed", "cancelled", "completed", "no_show"]);
 
 const json = (res, status, body) => {
-  res.writeHead(status, { "Content-Type": "application/json", "Access-Control-Allow-Origin": process.env.FRONTEND_ORIGIN || "*", "Access-Control-Allow-Headers": "Content-Type,X-Admin-Key", "Access-Control-Allow-Methods": "GET,POST,OPTIONS" });
+  res.writeHead(status, { "Content-Type": "application/json", "Access-Control-Allow-Origin": process.env.FRONTEND_ORIGIN || "*", "Access-Control-Allow-Headers": "Content-Type,X-Admin-Key", "Access-Control-Allow-Methods": "GET,POST,PATCH,OPTIONS" });
   res.end(JSON.stringify(body));
 };
 
@@ -17,6 +18,14 @@ const readBody = (req) => new Promise((resolve, reject) => {
   req.on("end", () => { try { resolve(raw ? JSON.parse(raw) : {}); } catch { reject(new Error("Invalid JSON")); } });
   req.on("error", reject);
 });
+
+const isAdmin = (req) => Boolean(process.env.ADMIN_KEY) && req.headers["x-admin-key"] === process.env.ADMIN_KEY;
+
+const requireAdmin = (req, res) => {
+  if (isAdmin(req)) return true;
+  json(res, 401, { error: "Unauthorized" });
+  return false;
+};
 
 async function init() {
   await pool.query(`
@@ -71,12 +80,60 @@ async function main() {
         const { rows } = await pool.query("SELECT id,name,price_cents,duration_minutes,description FROM services WHERE active=true ORDER BY id");
         return json(res, 200, { services: rows });
       }
+      if (req.method === "GET" && url.pathname === "/api/admin/metrics") {
+        if (!requireAdmin(req, res)) return;
+        const [summaryResult, serviceResult] = await Promise.all([
+          pool.query(`SELECT
+            COUNT(*)::int AS total_bookings,
+            COUNT(*) FILTER (WHERE status IN ('pending','confirmed') AND starts_at >= NOW())::int AS upcoming_bookings,
+            COUNT(*) FILTER (WHERE status='completed')::int AS completed_bookings,
+            COALESCE(SUM(s.price_cents) FILTER (WHERE status IN ('confirmed','completed')),0)::int AS booked_revenue_cents,
+            COALESCE(SUM(s.price_cents) FILTER (WHERE status='completed'),0)::int AS realized_revenue_cents,
+            COALESCE(SUM(s.price_cents) FILTER (WHERE status IN ('pending','confirmed') AND starts_at >= NOW()),0)::int AS pipeline_revenue_cents,
+            COALESCE(SUM(s.price_cents) FILTER (WHERE status IN ('confirmed','completed') AND created_at >= date_trunc('month', NOW())),0)::int AS month_booked_revenue_cents
+          FROM appointments a JOIN services s ON s.id=a.service_id`),
+          pool.query(`SELECT s.name AS service_name, COUNT(*)::int AS bookings,
+            COALESCE(SUM(s.price_cents) FILTER (WHERE a.status IN ('confirmed','completed')),0)::int AS revenue_cents
+            FROM appointments a JOIN services s ON s.id=a.service_id
+            GROUP BY s.id, s.name ORDER BY bookings DESC, s.name`)
+        ]);
+        return json(res, 200, {
+          currency: "USD",
+          summary: summaryResult.rows[0],
+          services: serviceResult.rows,
+          security: {
+            admin_auth: Boolean(process.env.ADMIN_KEY),
+            database_configured: Boolean(process.env.DATABASE_URL),
+            cors_restricted: Boolean(process.env.FRONTEND_ORIGIN)
+          }
+        });
+      }
       if (req.method === "GET" && url.pathname === "/api/appointments") {
-        if (!process.env.ADMIN_KEY || req.headers["x-admin-key"] !== process.env.ADMIN_KEY) return json(res, 401, { error: "Unauthorized" });
+        if (!requireAdmin(req, res)) return;
         const { rows } = await pool.query(`SELECT a.id,a.starts_at,a.ends_at,a.status,a.notes,s.name service_name,s.price_cents,c.name customer_name,c.email,c.phone
           FROM appointments a JOIN services s ON s.id=a.service_id JOIN customers c ON c.id=a.customer_id
           ORDER BY a.starts_at DESC LIMIT 250`);
         return json(res, 200, { appointments: rows });
+      }
+      if (req.method === "PATCH" && url.pathname.startsWith("/api/appointments/")) {
+        if (!requireAdmin(req, res)) return;
+        const appointmentId = decodeURIComponent(url.pathname.slice("/api/appointments/".length));
+        if (!/^[0-9a-f-]{36}$/i.test(appointmentId)) return json(res, 400, { error: "Invalid appointment id" });
+        const body = await readBody(req);
+        const hasStatus = Object.prototype.hasOwnProperty.call(body, "status");
+        const hasNotes = Object.prototype.hasOwnProperty.call(body, "notes");
+        const status = hasStatus ? String(body.status || "").trim() : null;
+        const notes = hasNotes ? (body.notes == null ? null : String(body.notes).trim() || null) : null;
+        if (!hasStatus && !hasNotes) return json(res, 400, { error: "status or notes is required" });
+        if (hasStatus && !APPOINTMENT_STATUSES.has(status)) return json(res, 400, { error: "Invalid appointment status" });
+        if (hasNotes && notes && notes.length > 2000) return json(res, 400, { error: "Notes exceed 2000 characters" });
+        const { rows } = await pool.query(`UPDATE appointments
+          SET status = CASE WHEN $1::boolean THEN $2 ELSE status END,
+              notes = CASE WHEN $3::boolean THEN $4 ELSE notes END
+          WHERE id=$5
+          RETURNING id,starts_at,ends_at,status,notes`, [hasStatus, status || null, hasNotes, notes, appointmentId]);
+        if (!rows.length) return json(res, 404, { error: "Appointment not found" });
+        return json(res, 200, { appointment: rows[0] });
       }
       if (req.method === "GET" && url.pathname === "/api/availability") {
         const serviceId = Number(url.searchParams.get("service_id"));
