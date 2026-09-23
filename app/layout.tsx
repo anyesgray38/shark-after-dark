@@ -6,11 +6,11 @@ const siteUrl = "https://anyesgray38.github.io/shark-after-dark";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Shark After Dark | Private Grooming Studio",
+    default: "Shark After Dark | Barber in Thomaston, GA",
     template: "%s | Shark After Dark",
   },
   description:
-    "Shark After Dark is a private grooming studio in Thomaston, Georgia, offering precision men's haircuts, fades, beard grooming, and a considered appointment experience.",
+    "Shark After Dark is a private men's grooming studio in Thomaston, Georgia, offering precision fades, haircuts, beard grooming, and private appointments.",
   keywords: [
     "Shark After Dark",
     "barber Thomaston GA",
@@ -19,17 +19,15 @@ export const metadata: Metadata = {
     "fade haircut Thomaston GA",
     "men's grooming Thomaston GA",
     "beard trim Thomaston GA",
-    "private barber",
-    "grooming studio",
+    "private barber Thomaston GA",
+    "grooming studio Thomaston GA",
   ],
   applicationName: "Shark After Dark",
   authors: [{ name: "Shark After Dark" }],
   creator: "Shark After Dark",
   publisher: "Shark After Dark",
   category: "beauty",
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   robots: {
     index: true,
     follow: true,
@@ -42,9 +40,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Shark After Dark | Private Grooming Studio",
+    title: "Shark After Dark | Barber in Thomaston, GA",
     description:
-      "Precision cuts, beard grooming, and private appointments in Thomaston, Georgia.",
+      "Precision fades, men's haircuts, beard grooming, and private appointments in Thomaston, Georgia.",
     url: siteUrl,
     siteName: "Shark After Dark",
     locale: "en_US",
@@ -52,10 +50,39 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Shark After Dark | Private Grooming Studio",
+    title: "Shark After Dark | Barber in Thomaston, GA",
     description:
-      "Precision cuts, beard grooming, and private appointments in Thomaston, Georgia.",
+      "Precision fades, men's haircuts, beard grooming, and private appointments in Thomaston, Georgia.",
   },
+};
+
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "BarberShop",
+  "@id": siteUrl + "/#barbershop",
+  name: "Shark After Dark",
+  url: siteUrl + "/",
+  description:
+    "Private men's grooming studio in Thomaston, Georgia offering precision haircuts, fades, beard grooming, and shaves.",
+  areaServed: {
+    "@type": "City",
+    name: "Thomaston",
+    containedInPlace: {
+      "@type": "State",
+      name: "Georgia",
+      containedInPlace: {
+        "@type": "Country",
+        name: "United States",
+      },
+    },
+  },
+  priceRange: "$$",
+  knowsAbout: [
+    "men's haircuts",
+    "skin fades",
+    "beard grooming",
+    "straight razor shaves",
+  ],
 };
 
 export default function RootLayout({
@@ -63,7 +90,13 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
