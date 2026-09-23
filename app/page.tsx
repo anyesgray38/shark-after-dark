@@ -110,7 +110,7 @@ export default function Home() {
         <div className="hero-photo" />
         <div className="hero-overlay" />
         <div className="hero-inner">
-          <p className="eyebrow">PRIVATE GROOMING STUDIO · EST. 2026</p>
+          <p className="eyebrow">PRIVATE BARBER · THOMASTON, GEORGIA · EST. 2026</p>
           <h1>Sharp cuts.<br/><em>Quiet luxury.</em></h1>
           <p className="hero-copy">An intimate grooming experience for men who appreciate the details. Tailored cuts, considered service, and a chair worth slowing down for.</p>
           <button className="cta" onClick={() => openBooking()}>Reserve Your Chair <span>↗</span></button>
@@ -134,7 +134,7 @@ export default function Home() {
         <div className="statement-copy">
           <p className="eyebrow">THE SHARK STANDARD</p>
           <h2>The art of looking <em>exactly right.</em></h2>
-          <p>Shark After Dark is a private studio built around one simple idea: great grooming should feel personal. Every cut is deliberate, every detail considered, and every appointment given room to breathe.</p>
+          <p>Shark After Dark is a private barber studio in Thomaston, Georgia, built around one simple idea: great grooming should feel personal. Every cut is deliberate, every detail considered, and every appointment given room to breathe.</p>
           <button className="text-link" onClick={() => openBooking()}>Enter the studio <span>→</span></button>
         </div>
       </section>
@@ -156,7 +156,7 @@ export default function Home() {
       </section>
 
       <footer>
-        <div><a className="brand" href="#">SHARK<span>AFTER DARK</span></a><p>Private grooming studio · Thomaston, Georgia</p></div>
+        <div><a className="brand" href="#">SHARK<span>AFTER DARK</span></a><p>Private barber studio · Thomaston, Georgia</p></div>
         <div className="footer-links"><a href="#services">Services</a><a href="#about">Studio</a><a href="#gallery">Journal</a><button onClick={() => openBooking()}>Booking</button></div>
         <small>© {new Date().getFullYear()} Shark After Dark</small>
       </footer>
