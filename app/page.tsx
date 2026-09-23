@@ -1,13 +1,13 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://shark-after-dark-api.onrender.com";
 
 const services = [
-  { id: 1, name: "The Apex Fade", price: "$45", description: "Precision skin fade with a custom lineup. The gold standard." },
-  { id: 2, name: "Deep Sea Shave", price: "$35", description: "Hot towel treatment, straight razor shave, and soothing oil." },
-  { id: 3, name: "The Night Owl", price: "$70", description: "Full service: fade, beard trim, and scalp massage." }
+  { id: 1, name: "The Apex Fade", price: "$45", durationMinutes: 60, description: "Precision skin fade with a custom lineup. The gold standard." },
+  { id: 2, name: "Deep Sea Shave", price: "$35", durationMinutes: 45, description: "Hot towel treatment, straight razor shave, and soothing oil." },
+  { id: 3, name: "The Night Owl", price: "$70", durationMinutes: 90, description: "Full service: fade, beard trim, and scalp massage." }
 ];
 
 const gallery = [
@@ -16,12 +16,27 @@ const gallery = [
   { label: "AFTER DARK", image: "https://images.unsplash.com/photo-1512690459411-b9245aed614b?auto=format&fit=crop&w=1800&q=85" }
 ];
 
+const today = () => {
+  const date = new Date();
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
+};
+
 export default function Home() {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(services[0]);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!bookingOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !busy) setBookingOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [bookingOpen, busy]);
 
   const openBooking = (service = services[0]) => {
     setSelectedService(service);
@@ -35,7 +50,31 @@ export default function Home() {
     setBusy(true);
     setError("");
     const form = new FormData(event.currentTarget);
+    const date = String(form.get("date"));
+    const time = String(form.get("time"));
+    const startsAt = new Date(`${date}T${time}`);
     try {
+      if (Number.isNaN(startsAt.getTime()) || startsAt.getTime() <= Date.now()) {
+        throw new Error("Choose a future date and time.");
+      }
+
+      const availabilityTo = new Date(startsAt.getTime() + selectedService.durationMinutes * 60 * 1000);
+      try {
+        const availabilityResponse = await fetch(
+          `${API_BASE}/api/availability?service_id=${selectedService.id}&from=${encodeURIComponent(startsAt.toISOString())}&to=${encodeURIComponent(availabilityTo.toISOString())}`
+        );
+        if (availabilityResponse.ok) {
+          const availability = await availabilityResponse.json();
+          if (availability.busy?.length) {
+            throw new Error("That time is already reserved. Choose another slot.");
+          }
+        }
+      } catch (availabilityError) {
+        if (availabilityError instanceof Error && availabilityError.message === "That time is already reserved. Choose another slot.") {
+          throw availabilityError;
+        }
+      }
+
       const response = await fetch(API_BASE + "/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,7 +83,7 @@ export default function Home() {
           email: form.get("email"),
           phone: form.get("phone"),
           service_id: selectedService.id,
-          starts_at: new Date(String(form.get("date")) + "T" + String(form.get("time"))).toISOString(),
+          starts_at: startsAt.toISOString(),
           notes: form.get("notes")
         })
       });
@@ -144,7 +183,7 @@ export default function Home() {
                   </div>
                   <label>Email<input name="email" type="email" required autoComplete="email" /></label>
                   <div className="form-grid">
-                    <label>Date<input name="date" type="date" required /></label>
+                    <label>Date<input name="date" type="date" min={today()} required /></label>
                     <label>Time<input name="time" type="time" required /></label>
                   </div>
                   <label>Notes (optional)<textarea name="notes" rows={3} placeholder="Anything I should know?" /></label>

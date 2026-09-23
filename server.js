@@ -20,6 +20,7 @@ const readBody = (req) => new Promise((resolve, reject) => {
 
 async function init() {
   await pool.query(`
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
     CREATE TABLE IF NOT EXISTS services (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
